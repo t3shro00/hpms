@@ -15,4 +15,5 @@ router.get('/appointments/:id', getAppointmentByIdController);
 router.put('/appointments/:id', updateAppointmentController);
 router.delete('/appointments/:id', deleteAppointmentController);
 
+
 export default router;

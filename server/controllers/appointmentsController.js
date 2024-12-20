@@ -16,45 +16,39 @@ export const createAppointmentController = async (req, res) => {
     if (!appointment_date) {
         return res.status(400).json({ error: 'Appointment date is required' });
     }
-    if (!notes) {
-        return res.status(400).json({ error: 'Notes are required' });
-    }
 
     try {
         const newAppointment = await createAppointment(req.body);
         res.status(201).json({ message: 'Appointment created successfully', appointment: newAppointment });
     } catch (err) {
-        if (err.message === 'Appointment time is already taken') {
-            res.status(400).json({ error: err.message });
-        } else {
-            res.status(500).json({ error: err.message });
-        }
+        res.status(500).json({ error: err.message });
     }
 };
 
 export const getAppointmentsController = async (req, res) => {
     try {
         const appointments = await getAppointments();
-        res.status(200).json({ message: 'Appointments retrieved successfully', appointments });
+        res.status(200).json(appointments);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
 export const getAppointmentByIdController = async (req, res) => {
+    const { id } = req.params;
     try {
-        const appointment = await getAppointmentById(req.params.id);
-        if (appointment) {
-            res.status(200).json({ message: 'Appointment retrieved successfully', appointment });
-        } else {
-            res.status(404).json({ error: 'Appointment not found' });
+        const appointment = await getAppointmentById(id);
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
         }
+        res.status(200).json(appointment);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
 export const updateAppointmentController = async (req, res) => {
+    const { id } = req.params;
     const { patient_id, appointment_date, notes } = req.body;
 
     // Validate required fields
@@ -64,30 +58,26 @@ export const updateAppointmentController = async (req, res) => {
     if (!appointment_date) {
         return res.status(400).json({ error: 'Appointment date is required' });
     }
-    if (!notes) {
-        return res.status(400).json({ error: 'Notes are required' });
-    }
 
     try {
-        const updatedAppointment = await updateAppointment(req.params.id, req.body);
-        if (updatedAppointment) {
-            res.status(200).json({ message: 'Appointment updated successfully', appointment: updatedAppointment });
-        } else {
-            res.status(404).json({ error: 'Appointment not found' });
+        const updatedAppointment = await updateAppointment(id, req.body);
+        if (!updatedAppointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
         }
+        res.status(200).json({ message: 'Appointment updated successfully', appointment: updatedAppointment });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
 export const deleteAppointmentController = async (req, res) => {
+    const { id } = req.params;
     try {
-        const deletedAppointment = await deleteAppointment(req.params.id);
-        if (deletedAppointment) {
-            res.status(200).json({ message: 'Appointment deleted successfully', appointment: deletedAppointment });
-        } else {
-            res.status(404).json({ error: 'Appointment not found' });
+        const deletedAppointment = await deleteAppointment(id);
+        if (!deletedAppointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
         }
+        res.status(200).json({ message: 'Appointment deleted successfully', appointment: deletedAppointment });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

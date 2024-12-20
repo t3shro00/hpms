@@ -4,13 +4,13 @@ import {
     getPatientById,
     updatePatient,
     deletePatient
-} from '../models/patients.js';
+} from '../models/Patients.js';
 
 export const createPatientController = async (req, res) => {
-    const { name, age, condition, gender, date_of_birth, email } = req.body;
+    const { name, age, gender, contact, email, patient_info } = req.body;
 
     // Validate required fields
-    if (!name || !age || !condition || !gender || !date_of_birth || !email) {
+    if (!name || !age || !gender || !contact || !email || !patient_info) {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -19,9 +19,9 @@ export const createPatientController = async (req, res) => {
         res.status(201).json({ message: 'Patient created successfully', patient: newPatient });
     } catch (err) {
         if (err.message === 'Email already exists') {
-            res.status(400).json({ error: err.message });
+            return res.status(400).json({ error: err.message });
         } else {
-            res.status(500).json({ error: err.message });
+            return res.status(500).json({ error: err.message });
         }
     }
 };
@@ -29,53 +29,53 @@ export const createPatientController = async (req, res) => {
 export const getPatientsController = async (req, res) => {
     try {
         const patients = await getPatients();
-        res.status(200).json({ message: 'Patients retrieved successfully', patients });
+        res.status(200).json(patients);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
 export const getPatientByIdController = async (req, res) => {
+    const { id } = req.params;
     try {
-        const patient = await getPatientById(req.params.id);
-        if (patient) {
-            res.status(200).json({ message: 'Patient retrieved successfully', patient });
-        } else {
-            res.status(404).json({ error: 'Patient not found' });
+        const patient = await getPatientById(id);
+        if (!patient) {
+            return res.status(404).json({ error: 'Patient not found' });
         }
+        res.status(200).json(patient);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
 export const updatePatientController = async (req, res) => {
-    const { name, age, condition, gender, date_of_birth, email } = req.body;
+    const { id } = req.params;
+    const { name, age, gender, contact, email, patient_info } = req.body;
 
     // Validate required fields
-    if (!name || !age || !condition || !gender || !date_of_birth || !email) {
+    if (!name || !age || !gender || !contact || !email || !patient_info) {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
     try {
-        const updatedPatient = await updatePatient(req.params.id, req.body);
-        if (updatedPatient) {
-            res.status(200).json({ message: 'Patient updated successfully', patient: updatedPatient });
-        } else {
-            res.status(404).json({ error: 'Patient not found' });
+        const updatedPatient = await updatePatient(id, req.body);
+        if (!updatedPatient) {
+            return res.status(404).json({ error: 'Patient not found' });
         }
+        res.status(200).json({ message: 'Patient updated successfully', patient: updatedPatient });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
 export const deletePatientController = async (req, res) => {
+    const { id } = req.params;
     try {
-        const deletedPatient = await deletePatient(req.params.id);
-        if (deletedPatient) {
-            res.status(200).json({ message: 'Patient deleted successfully', patient: deletedPatient });
-        } else {
-            res.status(404).json({ error: 'Patient not found' });
+        const deletedPatient = await deletePatient(id);
+        if (!deletedPatient) {
+            return res.status(404).json({ error: 'Patient not found' });
         }
+        res.status(200).json({ message: 'Patient deleted successfully', patient: deletedPatient });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

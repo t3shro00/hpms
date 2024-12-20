@@ -2,7 +2,7 @@ import pool from '../db.js';
 
 // Create a new patient
 export const createPatient = async (patient) => {
-    const { name, age, condition, gender, date_of_birth, email } = patient;
+    const { name, age, gender, contact, email, patient_info } = patient;
 
     // Check if the email already exists
     const emailCheck = await pool.query('SELECT * FROM patients WHERE email = $1', [email]);
@@ -11,8 +11,8 @@ export const createPatient = async (patient) => {
     }
 
     const result = await pool.query(
-        'INSERT INTO patients (name, age, condition, gender, date_of_birth, email) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [name, age, condition, gender, date_of_birth, email]
+        'INSERT INTO patients (name, age, gender, contact, email, patient_info) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [name, age, gender, contact, email, patient_info]
     );
     return result.rows[0];
 };
@@ -31,10 +31,10 @@ export const getPatientById = async (id) => {
 
 // Update a patient by ID
 export const updatePatient = async (id, patient) => {
-    const { name, age, condition, gender, date_of_birth, email } = patient;
+    const { name, age, gender, contact, email, patient_info } = patient;
     const result = await pool.query(
-        'UPDATE patients SET name = $1, age = $2, condition = $3, gender = $4, date_of_birth = $5, email = $6 WHERE patient_id = $7 RETURNING *',
-        [name, age, condition, gender, date_of_birth, email, id]
+        'UPDATE patients SET name = $1, age = $2, gender = $3, contact = $4, email = $5, patient_info = $6 WHERE patient_id = $7 RETURNING *',
+        [name, age, gender, contact, email, patient_info, id]
     );
     return result.rows[0];
 };

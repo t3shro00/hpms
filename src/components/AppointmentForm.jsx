@@ -1,31 +1,34 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-export default function AppointmentForm({ patients, onAddAppointment }) {
+export default function AppointmentForm({ patients, onSubmit }) {
   const [patientId, setPatientId] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [reason, setReason] = useState('');
+  const [appointmentDate, setAppointmentDate] = useState('');
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (patientId && date && time && reason) {
-      onAddAppointment({
-        patientId: parseInt(patientId, 10),
-        date,
-        time,
-        reason,
-      });
-      setPatientId('');
-      setDate('');
-      setTime('');
-      setReason('');
+
+    // Validate required fields
+    if (!patientId) {
+      setError('Patient ID is required');
+      return;
     }
+    if (!appointmentDate) {
+      setError('Appointment date is required');
+      return;
+    }
+
+    // Clear error and submit the form
+    setError('');
+    onSubmit({ patient_id: patientId, appointment_date: appointmentDate, notes });
   };
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Schedule Appointment</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && <p className="text-red-500">{error}</p>}
         <div>
           <label htmlFor="patient" className="block mb-1">
             Patient:
@@ -39,55 +42,38 @@ export default function AppointmentForm({ patients, onAddAppointment }) {
           >
             <option value="">Select a patient</option>
             {patients.map((patient) => (
-              <option key={patient.id} value={patient.id}>
+              <option key={patient.patient_id} value={patient.patient_id}>
                 {patient.name}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label htmlFor="date" className="block mb-1">
-            Date:
+          <label htmlFor="appointmentDate" className="block mb-1">
+            Appointment Date:
           </label>
           <input
-            type="date"
-            id="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            type="datetime-local"
+            id="appointmentDate"
+            value={appointmentDate}
+            onChange={(e) => setAppointmentDate(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             required
           />
         </div>
         <div>
-          <label htmlFor="time" className="block mb-1">
-            Time:
-          </label>
-          <input
-            type="time"
-            id="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="reason" className="block mb-1">
-            Reason:
+          <label htmlFor="notes" className="block mb-1">
+            Notes:
           </label>
           <textarea
-            id="reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
             className="w-full px-3 py-2 border rounded"
-            required
           />
         </div>
-        <button
-          type="submit"
-          className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-        >
-          Schedule Appointment
+        <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
+          Schedule
         </button>
       </form>
     </div>

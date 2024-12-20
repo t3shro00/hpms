@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AddPatient from './components/AddPatient';
 import AppointmentDetails from './components/AppointmentDetails';
 import AppointmentForm from './components/AppointmentForm';
-import PatientDetails from './components/PatientDetail'; // Fixed import
-import PatientList from './components/PatientList'; // Ensure file exists
+import PatientDetail from './components/PatientDetail';
+import PatientList from './components/PatientList';
 
+import {
+  getPatients,
+  createPatient,
+  getAppointments,
+  createAppointment,
+} from './apiServices';
 
 export default function HospitalPatientManagement() {
   const [patients, setPatients] = useState([]);
@@ -14,22 +20,73 @@ export default function HospitalPatientManagement() {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [view, setView] = useState('list');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const addPatient = (patient) => {
-    const newPatient = { ...patient, id: patients.length + 1 };
-    setPatients([...patients, newPatient]);
-    setView('list');
+  useEffect(() => {
+    fetchPatients();
+    fetchAppointments();
+  }, []);
+
+const fetchPatients = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await getPatients();
+        setPatients(response || []); // Handle nested data appropriately
+      } catch (error) {
+        setError('Failed to fetch patients.');
+        console.error('Error fetching patients:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+  
+
+  const fetchAppointments = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getAppointments();
+      setAppointments(response || []); // Handle nested structure or missing data
+      console.log('Fetched appointments:', response);
+    } catch (error) {
+      setError('Failed to fetch appointments.');
+      console.error('Error fetching appointments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  const addPatient = async (patient) => {
+    setError(null);
+    try {
+      const newPatient = await createPatient(patient);
+      setPatients((prev) => [...prev, newPatient]);
+      setView('list');
+    } catch (error) {
+      setError('Failed to add patient.');
+      console.error('Error adding patient:', error);
+    }
+  };
+
+  const addAppointment = async (appointment) => {
+    setError(null);
+    try {
+      const newAppointment = await createAppointment(appointment);
+      setAppointments((prev) => [...prev, newAppointment]);
+      setView('list');
+    } catch (error) {
+      setError('Failed to add appointment.');
+      console.error('Error adding appointment:', error);
+    }
   };
 
   const selectPatient = (patient) => {
     setSelectedPatient(patient);
     setView('details');
-  };
-
-  const addAppointment = (appointment) => {
-    const newAppointment = { ...appointment, id: appointments.length + 1 };
-    setAppointments([...appointments, newAppointment]);
-    setView('list');
   };
 
   const selectAppointment = (appointment) => {
@@ -60,7 +117,11 @@ export default function HospitalPatientManagement() {
           Schedule Appointment
         </button>
       </div>
-      {view === 'list' && (
+
+      {error && <div className="text-red-500 mb-4">{error}</div>}
+      {loading && <div>Loading...</div>}
+
+      {!loading && view === 'list' && (
         <PatientList
           patients={patients}
           appointments={appointments}
@@ -68,14 +129,14 @@ export default function HospitalPatientManagement() {
           onSelectAppointment={selectAppointment}
         />
       )}
-      {view === 'add' && <AddPatient onAddPatient={addPatient} />}
-      {view === 'details' && selectedPatient && (
-        <PatientDetails patient={selectedPatient} />
+      {!loading && view === 'add' && <AddPatient addPatient={addPatient} setView={setView} />}
+      {!loading && view === 'details' && selectedPatient && (
+        <PatientDetail patient={selectedPatient} />
       )}
-      {view === 'appointment' && (
-        <AppointmentForm patients={patients} onAddAppointment={addAppointment} />
+      {!loading && view === 'appointment' && (
+        <AppointmentForm patients={patients} onSubmit={addAppointment} />
       )}
-      {view === 'appointmentDetails' && selectedAppointment && (
+      {!loading && view === 'appointmentDetails' && selectedAppointment && (
         <AppointmentDetails
           appointment={selectedAppointment}
           patient={patients.find((p) => p.id === selectedAppointment.patientId)}
